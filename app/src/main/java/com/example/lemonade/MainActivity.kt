@@ -12,6 +12,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -31,7 +32,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             LemonadeTheme {
-                Surface (modifier = Modifier.fillMaxSize()) {
+                Surface(modifier = Modifier.fillMaxSize()) {
                     Citron()
                 }
             }
@@ -39,6 +40,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@SuppressLint("AutoboxingStateCreation")
 @Composable
 fun Citron() {
     // Déclaration des images et des textes
@@ -57,58 +59,73 @@ fun Citron() {
     )
 
     // Gérer l'état pour l'index actuel
-    val currentIndex = remember { mutableStateOf(0) }
+    val currentIndex = remember { mutableIntStateOf(0) }
 
     // Gérer le nombre de clics sur l'image de citron
-    val squeezeClickCount = remember { mutableStateOf(0) }
 
-    // Créer le bouton avec fond blanc
-    Button(
-        onClick = {
-            if (currentIndex.value == 1) {
-                // Si l'utilisateur est sur l'image de citron, incrémenter le nombre de clics
-                squeezeClickCount.value += 1
-            }
+    val squeezeClickCount = remember { mutableIntStateOf(0) }
 
-
-            if (currentIndex.value == 1 && squeezeClickCount.value >= 3) {
-                squeezeClickCount.value = 0 // Réinitialiser le compteur de clics
-                currentIndex.value =
-                    (currentIndex.value + 1) % images.size
-            } else if (currentIndex.value != 1) {
-                // Si l'utilisateur n'est pas sur l'image de citron, changer l'image
-                currentIndex.value = (currentIndex.value + 1) % images.size
-            }
-        },
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.White,  // Couleur de fond du bouton en blanc
-            contentColor = Color.Black     // Couleur du texte du bouton en noir
-        ),
-        modifier = Modifier.padding(16.dp)
+    // Structure de l'UI
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
+        // Afficher l'image
+        Image(
+            painter = images[currentIndex.value],
+            contentDescription = null,
+            modifier = Modifier.size(200.dp)
+        )
 
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Structure de l'UI
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        // Afficher le texte
+        Text(
+            text = texts[currentIndex.value],
+            color = colorResource(id = R.color.black)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Si l'utilisateur est sur l'image de citron, afficher combien de clics il lui reste
+        if (currentIndex.value == 1 && squeezeClickCount.value < 3) {
+            val clicksRemaining = 3 - squeezeClickCount.value
+            Text(
+                text = "Clics restants : $clicksRemaining",
+                color = Color.Gray
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Créer le bouton avec fond blanc
+        Button(
+            onClick = {
+                if (currentIndex.value == 1) {
+                    // Si l'utilisateur est sur l'image de citron, incrémenter le nombre de clics
+                    squeezeClickCount.value += 1
+                }
+
+                if (currentIndex.value == 1 && squeezeClickCount.value >= 3) {
+                    squeezeClickCount.value = 0 // Réinitialiser le compteur de clics
+                    currentIndex.value = (currentIndex.value + 1) % images.size
+                } else if (currentIndex.value != 1) {
+                    // Si l'utilisateur n'est pas sur l'image de citron, changer l'image
+                    currentIndex.value = (currentIndex.value + 1) % images.size
+                }
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.White,  // Couleur de fond du bouton en blanc
+                contentColor = Color.Black     // Couleur du texte du bouton en noir
+            )
         ) {
-            // Afficher l'image
-            Image(painter = images[currentIndex.value], contentDescription = null)
-
-            // Afficher le texte
-            Text(text = texts[currentIndex.value], color = colorResource(id = R.color.black))
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Si l'utilisateur est sur l'image de citron, afficher combien de clics il lui reste
-            if (currentIndex.value == 1 && squeezeClickCount.value < 3) {
-
-            }
+            Text("Suivant")
         }
     }
 }
+
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
